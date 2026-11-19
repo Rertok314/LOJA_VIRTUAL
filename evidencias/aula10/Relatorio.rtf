@@ -1,0 +1,96 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2822
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\froman\fcharset0 Times-Roman;\f1\froman\fcharset0 Times-Bold;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww35640\viewh18480\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\tx9869\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 Terceira rodada de teste - Resultado no Terminal:\
+\
+\
+joseelias@MacBook-Pro-de-Jose alunos % node --test tests/aula03.test.js\
+\uc0\u10006  confirma\'e7\'e3o: cupom vencido \'e9 recusado (2.608874ms)\
+\uc0\u10006  confirma\'e7\'e3o: cupom vencido aplicado no carrinho \'e9 recusado (0.565573ms)\
+\uc0\u10004  regress\'e3o: cupom v\'e1lido de 20% n\'e3o acumula (0.920227ms)\
+\uc0\u10004  regress\'e3o: cupom inativo continua recusado (0.164759ms)\
+\uc0\u8505  tests 4\
+\uc0\u8505  suites 0\
+\uc0\u8505  pass 2\
+\uc0\u8505  fail 2\
+\uc0\u8505  cancelled 0\
+\uc0\u8505  skipped 0\
+\uc0\u8505  todo 0\
+\uc0\u8505  duration_ms 109.069645\
+\
+\uc0\u10006  failing tests:\
+\
+test at tests/aula03.test.js:26:1\
+\uc0\u10006  confirma\'e7\'e3o: cupom vencido \'e9 recusado (2.608874ms)\
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\
+  \
+  true !== false\
+  \
+      at TestContext.<anonymous> (/Users/joseelias/Downloads/E-COMERCE TESTE DE SOFTWARE/alunos/tests/aula03.test.js:29:12)\
+      at Test.runInAsyncScope (node:async_hooks:214:14)\
+      at Test.run (node:internal/test_runner/test:1106:25)\
+      at Test.start (node:internal/test_runner/test:1003:17)\
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17) \{\
+    generatedMessage: true,\
+    code: 'ERR_ASSERTION',\
+    actual: true,\
+    expected: false,\
+    operator: 'strictEqual',\
+    diff: 'simple'\
+  \}\
+\
+test at tests/aula03.test.js:35:1\
+\uc0\u10006  confirma\'e7\'e3o: cupom vencido aplicado no carrinho \'e9 recusado (0.565573ms)\
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\
+  \
+  true !== false\
+  \
+      at TestContext.<anonymous> (/Users/joseelias/Downloads/E-COMERCE TESTE DE SOFTWARE/alunos/tests/aula03.test.js:39:12)\
+      at Test.runInAsyncScope (node:async_hooks:214:14)\
+      at Test.run (node:internal/test_runner/test:1106:25)\
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)\
+      at Test.postRun (node:internal/test_runner/test:1235:19)\
+      at Test.run (node:internal/test_runner/test:1163:12)\
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) \{\
+    generatedMessage: true,\
+    code: 'ERR_ASSERTION',\
+    actual: true,\
+    expected: false,\
+    operator: 'strictEqual',\
+    diff: 'simple'\
+  \}\
+joseelias@MacBook-Pro-de-Jose alunos % \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\tx9869\pardirnatural\partightenfactor0
+\cf0 \
+\
+Solu\'e7\'e3o aplicada:\
+\
+\pard\pardeftab720\partightenfactor0
+
+\f1\b \cf0 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Consulta ao Rel\'f3gio Control\'e1vel:
+\f0\b0  Foi feita conex\'e3o do m\'f3dulo \'e0 fun\'e7\'e3o now() de src/domain/clock.js. Agora, quando o teste fixa o hor\'e1rio com setClock(REFERENCE_INSTANT), a valida\'e7\'e3o do cupom enxerga essa mesma data/hora de refer\'eancia.\
+
+\f1\b Tratamento do Fim do Dia (RN-04):
+\f0\b0  Foi implementada a fun\'e7\'e3o auxiliar parseExpiry para que datas fornecidas sem hor\'e1rio espec\'edfico expirem somente no \'faltimo milissegundo do dia, respeitando a regra de que o cupom vale at\'e9 o encerramento do dia informado.\
+
+\f1\b Bloqueio de Cupons Vencidos:
+\f0\b0  Antes de aprovar o cupom, o sistema compara se a data limite \'e9 menor que o momento atual. Se estiver no passado, o cupom \'e9 rejeitado com \{ ok: false, message: "Cupom vencido." \}.\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\tx9869\pardirnatural\partightenfactor0
+\cf0 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 \
+\
+Conclus\'e3o:\
+\
+1. O cupom vencido \'e9 recusado\
+O que acontecia, era que\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2  ao enviar um cupom com data anterior ao instante do rel\'f3gio quando o rel\'f3gio estava em data diferente, a fun\'e7\'e3o de avalia\'e7\'e3o respondeu que ele era v\'e1lido (true !== false).\kerning1\expnd0\expndtw0 \outl0\strokewidth0 \
+\
+2. Cupom vencido aplicado no carrinho \'e9 recusado\
+O que acontecia era que \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 a rotina de cota\'e7\'e3o do carrinho aprovou a transa\'e7\'e3o e concedeu o desconto do cupom expirado.\kerning1\expnd0\expndtw0 \outl0\strokewidth0 \
+\
+Desta maneira, o teste demonstrou quatro aplica\'e7\'f5es de testes, sendo dois de confirma\'e7\'e3o e dois de regress\'e3o, com o objetivo de identificar poss\'edveis falhas no sistema. Apenas 2 dos 4 testes que obtiveram sucesso, sendo 2 testes apresentado falha. Foram feitas as corre\'e7\'f5es suscitadas e o sistema passou a funcionar corretamente.}

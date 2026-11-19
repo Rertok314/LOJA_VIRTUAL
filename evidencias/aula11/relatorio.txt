@@ -1,0 +1,33 @@
+Aluno: JOSÉ ELIAS BRASIL CARDOSO DOS SANTOS
+Matrícula: 202322971
+
+1. CAMPO DE CADASTRO SEM RÓTULO ASSOCIADO (RNF-01)
+- O que ocorria antes:
+  O formulário de cadastro apresentava o texto visual "Nome", mas a tag <label> não possuía o atributo 'for' vinculado ao ID do campo. Por causa disso, leitores de tela e métodos de busca acessível (como getByLabel do Playwright) não conseguiam identificar a relação entre o rótulo e o campo, gerando falha no teste automatizado.
+- O que foi feito de correção:
+  No arquivo public/index.html, adicionamos o atributo for="register-name" na tag <label> (aplicando a mesma amarração para e-mail e senha):
+  <label for="register-name">Nome</label>
+  <input id="register-name" ...>
+
+2. BOTÃO INACESSÍVEL VIA TECLADO NO CATÁLOGO (RNF-02)
+- O que ocorria antes:
+  O botão "Adicionar ao carrinho" foi construído na tela utilizando uma tag <div> estilizada. Por não ser um elemento nativo de botão, ele era ignorado pela tecla Tab durante a navegação por teclado, impedindo que pessoas com deficiência motora ou que navegam sem mouse conseguissem adicionar produtos e concluir compras.
+- O que foi feito de correção:
+  No arquivo public/js/catalog.js, substituímos a criação da <div> por um elemento semântico de botão:
+  const add = document.createElement("button");
+  add.type = "button";
+
+3. JORNADA DE CADASTRO E COMPRA (USABILIDADE)
+  O fluxo do usuário ao criar conta com dados válidos e a jornada de encontrar um produto, adicionar ao carrinho, aplicar o cupom VINTE e visualizar o total com o desconto aplicado.
+  Ambos os fluxos funcionam com fluidez, o cadastro conclui exibindo o chip de boas-vindas com o nome do usuário e o carrinho aplica os 20% de desconto corretamente, exibindo o total de forma clara.
+
+4. RESULTADO FINAL DOS TESTES
+Comando: npx playwright test aula04.spec.cjs
+
+✔ 1 acessibilidade: cadastro sem violações automatizadas detectadas (2.5s)
+✔ 2 acessibilidade: Nome possui rótulo associado (RNF-01) (459ms)
+✔ 3 acessibilidade: adicionar produto pode receber foco por Tab (RNF-02) (872ms)
+✔ 4 usabilidade: fluxo de cadastro de novo usuário com dados fictícios (1.1s)
+✔ 5 usabilidade: jornada de compra com cupom VINTE e cálculo do total (1.6s)
+
+Total: 5 testes executados | 5 aprovados | 0 falhas.

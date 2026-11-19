@@ -1,0 +1,197 @@
+Primeira rodada de teste - Resultado no Terminal:
+
+✖ funcional: pedido com quantidade acima do estoque (estoque 1, quantidade 2) deve ser rejeitado (0.280955ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (/Users/joseelias/Downloads/E-COMERCE TESTE DE SOFTWARE/alunos/tests/aula01_1.test.js:42:10)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+bash-3.2$ cs
+bash: cs: command not found
+bash-3.2$ clear
+bash-3.2$ node --test aula01_1.test.js
+Could not find 'aula01_1.test.js'
+bash-3.2$ node --test tests/aula01_1.test.js
+✔ unitário: estoque 0 com quantidade 1 é inválido (1.763079ms)
+✔ unitário: quantidade máxima permitida igual ao estoque (estoque 1, quantidade 1) é válida (0.206584ms)
+✖ funcional: pedido com estoque 0 deve ser rejeitado (2.828556ms)
+✖ funcional: pedido com quantidade acima do estoque (estoque 1, quantidade 2) deve ser rejeitado (0.296792ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 2
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 104.290717
+
+✖ failing tests:
+
+test at tests/aula01_1.test.js:35:1
+✖ funcional: pedido com estoque 0 deve ser rejeitado (2.828556ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (/Users/joseelias/Downloads/E-COMERCE TESTE DE SOFTWARE/alunos/tests/aula01_1.test.js:37:10)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/aula01_1.test.js:40:1
+✖ funcional: pedido com quantidade acima do estoque (estoque 1, quantidade 2) deve ser rejeitado (0.296792ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (/Users/joseelias/Downloads/E-COMERCE TESTE DE SOFTWARE/alunos/tests/aula01_1.test.js:42:10)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+bash-3.2$ 
+
+Investigando a falha:
+
+Há defeito no software: a rotina do placeOrder em src/services/checkout.js não confere o estoque disponível antes de processar os itens da compra e processar a conclusão.
+Assima ela aceita pedidos sem estoque.
+
+Testes pós resolução.
+
+✖ funcional: pedido com quantidade acima do estoque (estoque 1, quantidade 2) deve ser rejeitado (0.280955ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (/Users/joseelias/Downloads/E-COMERCE TESTE DE SOFTWARE/alunos/tests/aula01_1.test.js:42:10)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+bash-3.2$ cs
+bash: cs: command not found
+bash-3.2$ clear
+bash-3.2$ node --test aula01_1.test.js
+Could not find 'aula01_1.test.js'
+bash-3.2$ node --test tests/aula01_1.test.js
+✔ unitário: estoque 0 com quantidade 1 é inválido (1.763079ms)
+✔ unitário: quantidade máxima permitida igual ao estoque (estoque 1, quantidade 1) é válida (0.206584ms)
+✖ funcional: pedido com estoque 0 deve ser rejeitado (2.828556ms)
+✖ funcional: pedido com quantidade acima do estoque (estoque 1, quantidade 2) deve ser rejeitado (0.296792ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 2
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 104.290717
+
+✖ failing tests:
+
+test at tests/aula01_1.test.js:35:1
+✖ funcional: pedido com estoque 0 deve ser rejeitado (2.828556ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (/Users/joseelias/Downloads/E-COMERCE TESTE DE SOFTWARE/alunos/tests/aula01_1.test.js:37:10)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/aula01_1.test.js:40:1
+✖ funcional: pedido com quantidade acima do estoque (estoque 1, quantidade 2) deve ser rejeitado (0.296792ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (/Users/joseelias/Downloads/E-COMERCE TESTE DE SOFTWARE/alunos/tests/aula01_1.test.js:42:10)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+bash-3.2$ node --test tests/aula01_1.test.js
+✔ unitário: estoque 0 com quantidade 1 é inválido (1.53968ms)
+✔ unitário: quantidade máxima permitida igual ao estoque (estoque 1, quantidade 1) é válida (0.130136ms)
+✔ funcional: pedido com estoque 0 deve ser rejeitado (0.831759ms)
+✔ funcional: pedido com quantidade acima do estoque (estoque 1, quantidade 2) deve ser rejeitado (0.226489ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 100.70019
+bash-3.2$ 
+
+Solução aplicada:
+
+O defeito ocorria porque o fluxo de finalização do pedido no arquivo src/services/checkout.js não validava o estoque e também não realizava a baixa no inventário após a conclusão. Para resolver:
+Validação de Estoque Adicionada: Foi editada a função placeOrder no checkout.js para importar e utilizar a função hasAvailableStock. :
+Corrigido o segundo problema que ocorria no momento do fechamento. Agora, logo antes do pedido ser salvo com sucesso, a rotina passa novamente iterando sobre os itens e executa uma atualização do BD reduzindo exatamente a quantidade que o usuário está comprando do estoque.
+
+Conclusão:
+
+O teste demonstra duas aplicações de teste unitário e duas aplicações de teste funcional, com o objetivo de identificar possíveis falha no sistema. Foram encontradas falhas na persistência com o banco de dados e já foi corrigido conforme o relato acima. Anteriormente não se validava se o pedido com o estoque zerado era rejeitado, ou seja, não se fazia a persistência com o BD, da mesma forma quando o pedido continha quantidade acima do estoque.

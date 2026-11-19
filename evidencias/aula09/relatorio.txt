@@ -1,0 +1,104 @@
+Segunda rodada de teste - Resultado no Terminal:
+
+
+joseelias@MacBook-Pro-de-Jose alunos % node --test --test-concurrency=1 tests/aula02.test.js
+✖ integração: pedido reduz estoque (182.468106ms)
+✖ integração: pedido criado pode ser consultado (115.975835ms)
+✔ integração: compra acima do estoque é recusada com erro 400 (115.620345ms)
+✖ integração: compra da última unidade zera o estoque sem erros (168.415594ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 1
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 719.978914
+
+✖ failing tests:
+
+test at tests/aula02.test.js:36:1
+✖ integração: pedido reduz estoque (182.468106ms)
+  AssertionError [ERR_ASSERTION]: Resetar dados antes da prática
+      at TestContext.<anonymous> (/Users/joseelias/Downloads/E-COMERCE TESTE DE SOFTWARE/alunos/tests/aula02.test.js:40:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/aula02.test.js:55:1
+✖ integração: pedido criado pode ser consultado (115.975835ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  400 !== 201
+  
+      at TestContext.<anonymous> (/Users/joseelias/Downloads/E-COMERCE TESTE DE SOFTWARE/alunos/tests/aula02.test.js:65:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 400,
+    expected: 201,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/aula02.test.js:96:1
+✖ integração: compra da última unidade zera o estoque sem erros (168.415594ms)
+  AssertionError [ERR_ASSERTION]: Deve haver unidades restantes em estoque para zerar
+      at TestContext.<anonymous> (/Users/joseelias/Downloads/E-COMERCE TESTE DE SOFTWARE/alunos/tests/aula02.test.js:101:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+joseelias@MacBook-Pro-de-Jose alunos % 
+
+
+Solução aplicada:
+
+O defeito ocorria porque o fluxo de finalização do pedido no arquivo src/services/checkout.js não validava o estoque e também não realizava a baixa no inventário após a conclusão. Para resolver:
+Validação de Estoque Adicionada: Foi editada a função placeOrder no checkout.js para importar e utilizar a função hasAvailableStock. :
+Corrigido o segundo problema que ocorria no momento do fechamento. Agora, logo antes do pedido ser salvo com sucesso, a rotina passa novamente iterando sobre os itens e executa uma atualização do BD reduzindo exatamente a quantidade que o usuário está comprando do estoque.
+
+1. Resolução: Falha na consulta
+Como foi resolvido: No arquivo src/persistence/database.js foi feita a correção da função de gravação (persist) para que ela salve no arquivo do banco de dados os pedidos reais da memória da aplicação (state.orders), em vez de descartá-los;
+Dentro da função addOrder, adicionamos a chamada persist() para gravar fisicamente o pedido no disco no exato instante em que ele é gerado.
+Resultado: Agora, assim que a compra é finalizada, o pedido já fica gravado no banco de dados e pode ser consultado a qualquer momento pelo seu identificador ou pelo histórico.
+
+2. Resolução: Falha no limite do estoque
+Como foi resolvido: No arquivo src/services/checkout.js, foi feita adição de uma verificação antes de fechar o pedido, o sistema agora percorre os itens do carrinho e consulta a função de validação de estoque (hasAvailableStock).
+Se o cliente tentar comprar mais unidades do que a loja tem no momento, a compra é interrompida imediatamente com uma mensagem avisando que a quantidade não está disponível.
+Resultado: O sistema agora recusa compras que ultrapassem o estoque e mantém a integridade do inventário.
+
+3. Resolução: Falha na baixa do estoque
+Como foi resolvido: No arquivo src/services/checkout.js, logo após confirmar que há estoque suficiente e antes de salvar o pedido, adicionamos a baixa automática: o sistema chama db.updateProduct para cada produto do pedido, subtraindo do catálogo exatamente a quantidade que o cliente comprou.
+Resultado: Agora, ao vender unidades, o saldo em estoque é reduzido corretamente. Se o cliente comprar as últimas unidades restantes, o estoque zera de forma consistente e novas compras passam a ser rejeitadas.
+
+Conclusão:
+
+1. O pedido sumia logo após ser criado (Falha na consulta)
+O que acontecia, era que a rota de compra finalizava com sucesso, porém quando se tentava consultar esse mesmo pedido logo em seguida pelo seu código, o sistema dizia que ele não existia.
+A raiz do problema: O sistema guardava o pedido apenas na memória temporária da aplicação e não salvava no banco de dados. Como a rotina de busca efetua a leitura direto do HD, ela não encontrava o pedido criado.
+
+2. O sistema permitia comprar mais do que se apresentava no estoque da loja (Falha no limite de estoque)
+O que acontecia era que ao tentar comprar uma quantidade maior do que a loja realmente tinha disponível, o sistema permitia a inserção no carrinho infinitamente do produto, mesmo não tendo estoque disponível para tanto.
+A raiz do problema: A função de fechamento de compra não fazia nenhuma conferência entre a quantidade de itens que estava no carrinho e o estoque real do catálogo antes de aprovar a transação.
+
+3. O estoque não diminuía após a venda (Falha na baixa do estoque)
+O que acontecia era que, mesmo depois de uma compra ser concluída com sucesso (inclusive comprando todas as unidades restantes), o produto continuava exatamente com o mesmo estoque de antes, como se nada tivesse saído da loja.
+A raiz do problema: O checkout registrava a compra, mas não dava a baixa no inventário, ou seja, ele não minorava as unidades vendidas do saldo de estoque do produto no banco de dados.
+
+Desta maneira, o teste demonstrou quatro aplicações de testes de integração, com o objetivo de identificar possíveis falhas nas integrações do sistema. Apenas 1 dos 4 testes que obteve sucesso, sendo 3 testes apresentado falha na integração do sistema. Desta forma, foram encontradas falhas  duas aplicações de teste unitário e duas aplicações de teste funcional, com o objetivo de identificar possíveis falha no sistema. Foram encontradas falhas na persistência com o banco de dados e já foi corrigido conforme o relato acima. Anteriormente não se validava se o pedido com o estoque zerado era rejeitado, ou seja, não se fazia a persistência com o BD, da mesma forma quando o pedido continha quantidade acima do estoque.

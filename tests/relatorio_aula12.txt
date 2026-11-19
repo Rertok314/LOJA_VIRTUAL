@@ -1,0 +1,83 @@
+# Relatório de Testes de Desempenho — Aula 12
+
+## 1. Identificação do Ambiente e Funcionalidade
+- **Ambiente:** MacBook Pro (macOS), Node.js v18+, Grafana k6 e Google Chrome DevTools.
+- **Aplicação:** Loja Aurora rodando em `http://127.0.0.1:3000`.
+- **Funcionalidade testada:** Catálogo de produtos (`GET /api/products`).
+- **Base didática:** 1.200 produtos (1.159 ativos no catálogo).
+
+## 2. Critérios Pré-definidos (Thresholds)
+- **Carga (5 VUs / 30s):** p(95) < 500 ms, falhas < 1%, checks > 99%.
+- **Estresse (até 30 VUs / 1m30s):** p(95) < 1000 ms, falhas < 5%, checks > 95%.
+- **Recuperação:** Retornar ao tempo de resposta normal após a redução da carga.
+- **Interface (RNF-06 a RNF-09):** Não disparar chamadas ociosas, não buscar a cada tecla e não acumular tratadores de clique.
+
+## 3. Tabela de Resultados (k6)
+| Teste | Etapa | Carga | Duração | p(95) | Vazão | Falhas | Checks | Situação |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| Carga | 1 | 5 VUs | 30s | 29.32 ms | 4.80 req/s | 0.00% | 100% | Aprovado |
+| Estresse | 2 | 5 a 30 VUs | 1m30s | 20.51 ms | 23.18 req/s | 0.00% | 100% | Aprovado |
+| Recuperação | 3 | 5 VUs | 30s | 49.83 ms | 4.78 req/s | 0.00% | 100% | Aprovado |
+
+## 4. Análise de Degradação e Recuperação (Backend)
+- **Degradação:** No pico de 30 usuários simultâneos, o tempo de resposta p(95) foi de apenas 20.51 ms com 0% de falhas. A base padrão não causou saturação no servidor local.
+- **Recuperação:** Após o término do estresse, o novo teste de carga registrou p(95) de 49.83 ms e 0% de falhas, comprovando que o sistema recuperou seu comportamento normal sem lentidão residual.
+
+## 5. Desempenho da Interface (Frontend / DevTools Network)
+Enquanto a API suportou o teste com folga, a interface no navegador apresentou 3 problemas graves:
+1. **Ocioso (RNF-09):** Realizou 15 requisições (15.9 MB) sem nenhuma interação do usuário devido a um `setInterval` em `main.js`.
+2. **Busca (RNF-06):** Ao digitar "casa", disparou 39 requisições (41.4 MB), fazendo download do catálogo a cada tecla digitada por falta de debounce.
+3. **Atualizar lista (RNF-07):** Disparou 113 requisições (120 MB) para um único clique, pois a função `renderCatalog` acumula um novo ouvinte de evento a cada renderização.
+
+## 6. Proposta de Melhoria
+- **Frontend:** Remover o `setInterval` de 2s em `main.js`, registrar o clique do botão "Atualizar lista" uma única vez na inicialização e filtrar os produtos já em memória na busca.
+- **Backend:** Implementar paginação na rota `/api/products` para não trafegar 1 MB de JSON a cada chamada.
+
+## 7. Conclusão
+O backend atendeu a todos os critérios de carga e estresse com folga (p95 < 50ms e 0% de falhas). O gargalo real da aplicação está concentrado no frontend, que desperdiça banda e processamento com requisições repetidas e tratadores de eventos acumulados.
+
+---
+
+## Anexo: Logs Brutos das Execuções k6
+
+### 1. Teste de Carga Inicial
+```text
+joseelias@MacBook-Pro-de-Jose alunos % k6 run --summary-export=resultado-carga.json tests/carga/carga.js
+  scenarios: 5 max VUs for 30s
+  ✓ 'rate>0.99' rate=100.00%
+  ✓ 'p(95)<500' p(95)=29.32ms
+  ✓ 'rate<0.01' rate=0.00%
+  checks_total.......: 290 (100% succeeded)
+  http_req_duration..: avg=16.82ms med=13.75ms max=79.29ms p(95)=29.32ms
+  http_req_failed....: 0.00% (0 out of 145)
+  http_reqs..........: 145 (4.799208/s)
+  data_received......: 154 MB (5.1 MB/s)
+```
+
+### 2. Teste de Estresse
+```text
+joseelias@MacBook-Pro-de-Jose alunos % k6 run --summary-export=resultado-estresse.json tests/carga/estresse.js
+  scenarios: Up to 30 looping VUs for 1m30s over 5 stages
+  ✓ 'rate>0.95' rate=100.00%
+  ✓ 'p(95)<1000' p(95)=20.51ms
+  ✓ 'rate<0.05' rate=0.00%
+  checks_total.......: 2096 (100% succeeded)
+  http_req_duration..: avg=13.39ms med=11.75ms max=74.74ms p(95)=20.51ms
+  http_req_failed....: 0.00% (0 out of 2096)
+  http_reqs..........: 2096 (23.177471/s)
+  data_received......: 2.2 GB (25 MB/s)
+```
+
+### 3. Teste de Recuperação (Pós-Estresse)
+```text
+joseelias@MacBook-Pro-de-Jose alunos % k6 run --summary-export=resultado-recuperacao.json tests/carga/carga.js
+  scenarios: 5 max VUs for 30s
+  ✓ 'rate>0.99' rate=100.00%
+  ✓ 'p(95)<500' p(95)=49.83ms
+  ✓ 'rate<0.01' rate=0.00%
+  checks_total.......: 290 (100% succeeded)
+  http_req_duration..: avg=18.22ms med=14.92ms max=65.85ms p(95)=49.83ms
+  http_req_failed....: 0.00% (0 out of 145)
+  http_reqs..........: 145 (4.778819/s)
+  data_received......: 154 MB (5.1 MB/s)
+```
